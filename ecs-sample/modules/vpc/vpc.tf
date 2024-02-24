@@ -45,6 +45,7 @@ resource "aws_internet_gateway" "gateway" {
 }
 
 # Route Table
+# Public
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.vpc.id
 
@@ -64,6 +65,28 @@ resource "aws_route_table_association" "public" {
 
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
+}
+
+# Private
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.vpc.id
+
+  route {
+    cidr_block = "20.0.10.0/24"
+    # ローカルゲートウェイを指定
+    gateway_id = "local"
+  }
+
+  tags = {
+    Name = "koshimaru-sample-private-route-table"
+  }
+}
+# Associate private subnet
+resource "aws_route_table_association" "parivate" {
+  count = 2
+
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
 }
 
 
@@ -98,6 +121,21 @@ resource "aws_vpc_endpoint" "ecr_api" {
   }
 }
 
+# SSM Messages VPC Endpoint for ECS Exec
+resource "aws_vpc_endpoint" "ssm_messages" {
+  vpc_id             = aws_vpc.vpc.id
+  service_name       = "com.amazonaws.ap-northeast-1.ssmmessages"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = aws_subnet.private[*].id
+  security_group_ids = [aws_security_group.ecr_vpc_sg.id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "ssm-messages-vpc-endpoint"
+  }
+}
+
 # S3 Gateway Endpoint for ECR to store images on S3
 resource "aws_vpc_endpoint" "s3_gateway" {
   vpc_id       = aws_vpc.vpc.id
@@ -105,7 +143,7 @@ resource "aws_vpc_endpoint" "s3_gateway" {
   vpc_endpoint_type = "Gateway"
 
   # ルートテーブルは後で作成する
-  route_table_ids = ["rtb-0a39853109c36ad7f"]
+  route_table_ids = [aws_route_table.private.id]
 
   tags = {
     Name = "s3-gateway-vpc-endpoint"

@@ -1,7 +1,3 @@
-# data "aws_ecs_task_definition" "web" {
-#   task_definition = aws_ecs_task_definition.dev_bukkaku_backend_taskdifinition.family
-# }
-
 resource "aws_ecs_service" "service" {
   name    = "koshimaru-sample-service"
   cluster = aws_ecs_cluster.cluster.arn
@@ -17,7 +13,7 @@ resource "aws_ecs_service" "service" {
     type = "CODE_DEPLOY"
   }
 
-  # codedeployで管理
+  # codedeployで管理(bule/greenデプロイメントにする)
   lifecycle {
     ignore_changes = [task_definition, load_balancer, desired_count, platform_version, deployment_maximum_percent, deployment_minimum_healthy_percent, force_new_deployment, enable_execute_command, launch_type, capacity_provider_strategy]
   }
@@ -40,7 +36,7 @@ resource "aws_cloudwatch_log_group" "sample_log" {
 }
 
 resource "aws_appautoscaling_target" "ecs_target" {
-  max_capacity       = 10
+  max_capacity       = 4
   min_capacity       = 0
   resource_id        = "service/${aws_ecs_cluster.cluster.name}/${aws_ecs_service.service.name}"
   scalable_dimension = "ecs:service:DesiredCount"

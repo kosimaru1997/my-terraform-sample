@@ -4,10 +4,21 @@ resource "aws_ecs_cluster" "cluster" {
     name  = "containerInsights"
     value = "enabled"
   }
+  # AWC execを使用するための設定
+  configuration {
+    execute_command_configuration {
+      logging = "DEFAULT"
+    }
+  }
 }
 
 resource "aws_ecs_task_definition" "main" {
   family = var.task_family
+
+  # タスク実行ロール
+  execution_role_arn = aws_iam_role.ecs_execution_role.arn
+  # タスクロール
+  task_role_arn      = aws_iam_role.ecs_task_role.arn
 
   # データプレーンの選択
   requires_compatibilities = ["FARGATE"]
@@ -23,11 +34,10 @@ resource "aws_ecs_task_definition" "main" {
 
   # 起動するコンテナの定義
   # 「nginxを起動し、80ポートを開放する」設定を記述。
-    container_definitions = templatefile("./modules/ecs/container_definitions.tpl", {
+  container_definitions = templatefile("./modules/ecs/container_definitions.tpl", {
     container_name    = var.container_name,
   })
-  execution_role_arn = aws_iam_role.koshimaru-sample-ecs_execution_role.arn
-  task_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
 }
 
 resource "aws_cloudwatch_log_group" "ecs_log_group" {
