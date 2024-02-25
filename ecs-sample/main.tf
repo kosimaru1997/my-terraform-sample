@@ -33,6 +33,12 @@ module "alb" {
   security_group_id = module.alb_sg.security_group_id
 }
 
+module "cloudfront" {
+  source = "./modules/cloudfront"
+  alb_id = module.alb.id
+  alb_dns = module.alb.alb_dns
+}
+
 module "ecr" {
   source          = "./modules/ecr"
   repository_name = "koshimaru-sample-ecr"
