@@ -1,5 +1,5 @@
 resource "aws_lb_target_group" "blue" {
-  name                 = var.target_group_name
+  name                 = "${var.target_group_name}-bule"
   target_type          = "ip"
   vpc_id               = var.vpc_id
   port                 = 80
@@ -18,7 +18,7 @@ resource "aws_lb_target_group" "blue" {
 }
 
 resource "aws_lb_target_group" "green" {
-  name                 = "${var.target_group_name}2"
+  name                 = "${var.target_group_name}-green"
   target_type          = "ip"
   vpc_id               = var.vpc_id
   port                 = 80

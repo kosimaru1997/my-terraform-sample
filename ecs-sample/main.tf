@@ -71,3 +71,14 @@ module "ecs" {
   alb_listener_arn           = module.alb.alb_listener_arn
   alb_health_check_path      = "/index.html"
 }
+
+module "codedeploy" {
+  source = "./modules/codedeploy"
+  application_name = "koshimaru-sample-app"
+  deploy_group_name = "koshimaru-sample-deployment-group"
+  cluster_name = module.ecs.cluster_name
+  service_name = module.ecs.service_name
+  listener_arn = module.alb.alb_listener_arn
+  target_group_name1 = module.ecs.target_group_blue_name
+  target_group_name2 = module.ecs.target_group_green_name
+}
